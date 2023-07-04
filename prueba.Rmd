@@ -1,0 +1,58 @@
+---
+title: "Ministerio de Salud   "
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: cerulean
+    css: estilo.css
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Inicio {data-icon="fa-home" .bprueba}
+
+## column  
+
+### {.bginstitu}
+
+
+<div style='width: 40%;  margin: auto'>
+
+<h2>Dirección de Articulación de Políticas Públicas en Territorio</h2>
+</div>
+
+<hr style='margin: 50px auto'>
+
+<h3 style = 'text-align:center; color:#50535c;'>Área de Estadísticas</h3>
+<br>
+<br>
+<center>
+<script>
+  function usrpas(){
+    if (document.form1.txt.value=="msal" && document.form1.num.value=="1328"){window.location="https://rpubs.com/EstadisticaDAPPTe/tableromil"}
+    else {alert("Error en Usuario o Contraseña. Intenta de nuevo.")}
+  }
+document.oncontextmenu=new Function("return false");
+</script>
+  <form name="form1">
+  <input type="text" name="txt"> Usuario  <FONT COLOR="#37BBED">---..</FONT><br>
+  <input type="password" name="num"> Contraseña<br>
+  <br>
+  <input type="button" value="Acceder al tablero" onclick="usrpas()">
+  </form>
+
+
+
+</center>
+</section>
+
+
+
+
+
+
+
+

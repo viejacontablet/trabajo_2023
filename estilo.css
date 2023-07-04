@@ -1,0 +1,122 @@
+* {
+   padding: 0px;
+   margin: 0px;
+}
+                  /* el tema aca esta en el navbar que tiene margin abajo
+                  seguir en hora 2.43.00*/
+
+.bgbase2 {
+  background-color: #37BBED; 
+} 
+
+.bginstitu {
+  background-color: #37BBED; /* Color Institucional */ 
+  border: none;             /* width: 100vw; height: 100vh; */
+  /*margin-top: 0;
+  margin-left: 0;
+  position: relative; absolut fixed sticky static
+  top: 0;
+  left: 0;*/
+}
+
+hr { 
+ border: none;
+ height: 1px; /* Set the hr color */ 
+ width: 300px;
+ color: #0098D560; /* old IE */ 
+ background-color: #0098D560; /* Modern Browsers */ 
+  /* sirve para centrar lo que no tiene contenedor*/
+  
+}
+
+.bgcol2 {
+  background-color: #fafcfc;
+  border-color: #0098D560;
+  opacity: 0.4;
+}
+
+.bgcol3 {
+  background-color: green;
+  border-color: white;
+  opacity: 0.3;
+}
+
+.bgcol {
+  background-color: #0098D540;
+  border-color: #0098D560;
+}
+
+.bgbase {
+  background-color: white; 
+} 
+
+.bdlcol {
+  border-color: white;
+}
+
+.bdlcol2 {
+  border-color: #0098D560;
+}
+
+h2 {
+  margin-top: 50px;
+  text-align: center;
+  color: white;
+}
+
+
+
+.faltcol{
+  background-color: #ffffff;
+  border-color: #0098D560;
+}
+
+
+.faltcol2{
+  background-color: #ffffff;
+  border-color: #0098D560;
+}
+
+
+.colinf{
+  background-color: #a9d3d6;
+  border-color: #0098D560;
+}
+
+.colinf2{
+  border-color: #0098D560;
+}
+
+
+.bgcol1{
+  background-color: #2F3237;
+  color:white;
+}
+
+.titmetant{
+  color: black;
+}
+
+.prueba{
+  background-color: #038554;
+  color: white;
+  text-align: center;
+}
+
+
+#apartado1{
+   border:1px solid brown;
+   border-radius: 22px 22px 22px 22px;;
+   border-color: #a9d3d6;
+   background-color:#0098D560;
+}
+
+#apartado2{
+   border-radius: 0px 22px 39px 0px;;
+   border-color: #ffffff;
+   background-color:#ffffff;
+}
+
+.espainf{
+  background-color:grey;
+}

@@ -1,0 +1,185 @@
+---
+title: "Resumen anticonceptivos entregados"
+author: "Área estadística - DAPPTe"
+date: "8/03/2023"
+output:
+  html_document:
+    theme: paper
+---
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+mes_inf<-5
+```
+
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE, include=FALSE}
+library(tidyverse)
+library(lubridate)
+library(DT)
+datos <- read.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vQhUJ_P05qmjRHFDibfuCgASOmxYnaljEiRlNbDCuh7sVxjbuH0kbVv2qZ_uEwyrh3w0uBhr8wN2xG6/pub?gid=152054715&single=true&output=csv",encoding = "utf-8")
+datos$Marca.temporal<-lubridate::dmy_hms(datos$Marca.temporal)
+
+datos<- datos%>% mutate(mes = month(datos$Marca.temporal))
+
+datos <-datos%>% filter(mes == mes_inf)
+
+tabla<-datos[,c(3,4,5,6,7,8,9,10)]
+colnames(tabla)<-c("Provincia",	"Municipio/localidad",	"Levonorgestrel + Etinilestradiol",	"Desogestrel",	"Medroxiprogesterona",	"CHIP ISD",	"Gestodeno + Etinilestradiol","Levonovogestrel 1.5 mg")
+
+
+#función para quitar todos los valores no sean numericos de una tabla desde-hasta la la fila y columna que le digo
+dejar_solo_num<-function(datos,fila_desde,fila_hasta,col_desde,col_hasta){
+  for(i in c(fila_desde:fila_hasta)){ for(j in c(col_desde:col_hasta)) {
+datos[[i,j]]<-gsub("a","",datos[[i,j]])
+datos[[i,j]]<-gsub("á","",datos[[i,j]])
+datos[[i,j]]<-gsub("b","",datos[[i,j]])
+datos[[i,j]]<-gsub("c","",datos[[i,j]])
+datos[[i,j]]<-gsub("d","",datos[[i,j]])
+datos[[i,j]]<-gsub("e","",datos[[i,j]])
+datos[[i,j]]<-gsub("é","",datos[[i,j]])
+datos[[i,j]]<-gsub("f","",datos[[i,j]])
+datos[[i,j]]<-gsub("g","",datos[[i,j]])
+datos[[i,j]]<-gsub("h","",datos[[i,j]])
+datos[[i,j]]<-gsub("i","",datos[[i,j]])
+datos[[i,j]]<-gsub("í","",datos[[i,j]])
+datos[[i,j]]<-gsub("j","",datos[[i,j]])
+datos[[i,j]]<-gsub("k","",datos[[i,j]])
+datos[[i,j]]<-gsub("l","",datos[[i,j]])
+datos[[i,j]]<-gsub("m","",datos[[i,j]])
+datos[[i,j]]<-gsub("n","",datos[[i,j]])
+datos[[i,j]]<-gsub("ñ","",datos[[i,j]])
+datos[[i,j]]<-gsub("o","",datos[[i,j]])
+datos[[i,j]]<-gsub("ó","",datos[[i,j]])
+datos[[i,j]]<-gsub("p","",datos[[i,j]])
+datos[[i,j]]<-gsub("q","",datos[[i,j]])
+datos[[i,j]]<-gsub("r","",datos[[i,j]])
+datos[[i,j]]<-gsub("s","",datos[[i,j]])
+datos[[i,j]]<-gsub("t","",datos[[i,j]])
+datos[[i,j]]<-gsub("u","",datos[[i,j]])
+datos[[i,j]]<-gsub("ú","",datos[[i,j]])
+datos[[i,j]]<-gsub("ü","",datos[[i,j]])
+datos[[i,j]]<-gsub("v","",datos[[i,j]])
+datos[[i,j]]<-gsub("w","",datos[[i,j]])
+datos[[i,j]]<-gsub("x","",datos[[i,j]])
+datos[[i,j]]<-gsub("y","",datos[[i,j]])
+datos[[i,j]]<-gsub("z","",datos[[i,j]])
+datos[[i,j]]<-gsub("A","",datos[[i,j]])
+datos[[i,j]]<-gsub("Á","",datos[[i,j]])
+datos[[i,j]]<-gsub("B","",datos[[i,j]])
+datos[[i,j]]<-gsub("C","",datos[[i,j]])
+datos[[i,j]]<-gsub("D","",datos[[i,j]])
+datos[[i,j]]<-gsub("F","",datos[[i,j]])
+datos[[i,j]]<-gsub("E","",datos[[i,j]])
+datos[[i,j]]<-gsub("É","",datos[[i,j]])
+datos[[i,j]]<-gsub("F","",datos[[i,j]])
+datos[[i,j]]<-gsub("G","",datos[[i,j]])
+datos[[i,j]]<-gsub("H","",datos[[i,j]])
+datos[[i,j]]<-gsub("I","",datos[[i,j]])
+datos[[i,j]]<-gsub("Í","",datos[[i,j]])
+datos[[i,j]]<-gsub("J","",datos[[i,j]])
+datos[[i,j]]<-gsub("K","",datos[[i,j]])
+datos[[i,j]]<-gsub("L","",datos[[i,j]])
+datos[[i,j]]<-gsub("M","",datos[[i,j]])
+datos[[i,j]]<-gsub("N","",datos[[i,j]])
+datos[[i,j]]<-gsub("Ñ","",datos[[i,j]])
+datos[[i,j]]<-gsub("O","",datos[[i,j]])
+datos[[i,j]]<-gsub("Ó","",datos[[i,j]])
+datos[[i,j]]<-gsub("P","",datos[[i,j]])
+datos[[i,j]]<-gsub("Q","",datos[[i,j]])
+datos[[i,j]]<-gsub("R","",datos[[i,j]])
+datos[[i,j]]<-gsub("S","",datos[[i,j]])
+datos[[i,j]]<-gsub("T","",datos[[i,j]])
+datos[[i,j]]<-gsub("U","",datos[[i,j]])
+datos[[i,j]]<-gsub("Ú","",datos[[i,j]])
+datos[[i,j]]<-gsub("V","",datos[[i,j]])
+datos[[i,j]]<-gsub("W","",datos[[i,j]])
+datos[[i,j]]<-gsub("X","",datos[[i,j]])
+datos[[i,j]]<-gsub("Y","",datos[[i,j]])
+datos[[i,j]]<-gsub("Z","",datos[[i,j]])
+datos[[i,j]]<-gsub(" ","",datos[[i,j]])
+
+  }
+  }
+  return(datos)
+}
+
+#funcion para que haga numeric las variables desde la col que le indico hast ala que le indico
+hacer_numeric <- function(datos, col_desde, col_hasta) {
+  for(i in c(col_desde:col_hasta)){
+  datos[,i]<-as.numeric(datos[,i])
+  }
+  return(datos)
+}
+
+#función que convierte los na de un data frame en el valor que le digas y te dice cuantos cambio por variable
+convertir_na <- function(datos,valor){                     
+ cant_na <- matrix(nrow = ncol(datos),ncol = 2)
+  colnames(cant_na) <- c("variable","cant")
+  for(i in seq_along(datos)) { cant_na[i,1] <- colnames(datos[i]) #con este veo la cantidad de los na
+  cant_na[i,2] <- sum(is.na(datos[i]))
+  }
+  print(cant_na)
+  corredor <- 1:ncol(datos)
+  zz<-matrix()
+  for(k in corredor) {
+    if(cant_na[k,2]>0){zz<-rbind(zz,cant_na[k,1])}
+  }
+  zz<-zz[-1]
+  pos_na<- apply(is.na(datos), 2, which)#con este veo la posición de na
+  for(l in zz){for(q in pos_na[[l]]){
+    datos[[q,l]]<- "0"
+  }}
+  return(datos)#necesario para que me copie los datos en x
+}
+
+#esta funcion transforma el mes en numeros en escrito
+mes_escrito <- function(mes) {
+if(mes == 1){mes_let <- "Enero"} else {if(mes == 2){mes_let <- "Febrero"} else {if(mes == 3){mes_let <- "Marzo"} else {if(mes == 4){mes_let <- "Abril"} else {if(mes == 5){mes_let <- "Mayo"} else {if(mes == 6){mes_let <- "Junio"} else {if(mes == 7){mes_let <- "Julio"} else {if(mes == 8){mes_let <- "Agosto"} else {if(mes == 9){mes_let <- "Septiembre"} else {if(mes == 10){mes_let <- "Octubre"} else {if(mes == 11){mes_let <- "Noviembre"} else {if(mes == 12){mes_let <- "Diciembre"}}}}}}}}}}}}
+  return(mes_let)
+}
+
+
+tabla_clean <- dejar_solo_num(datos = tabla,fila_desde = 1,fila_hasta = nrow(tabla),col_desde = 3,col_hasta = ncol(tabla))
+
+
+
+tabla_clean <- hacer_numeric(datos = tabla_clean,col_desde = 3, col_hasta = ncol(tabla))
+
+tabla_clean <- convertir_na(datos = tabla_clean,valor = 0)
+
+tabla_clean <- hacer_numeric(datos = tabla_clean,col_desde = 3, col_hasta = ncol(tabla))
+
+sum_col = colSums(tabla_clean[ , 3:ncol(tabla)])
+
+sum_col <- c("Totales", "-",sum_col)
+as.vector(sum_col)
+tabla_clean <- rbind(tabla_clean,sum_col)
+
+tabla_clean <- hacer_numeric(datos = tabla_clean,col_desde = 3, col_hasta = ncol(tabla))
+
+tabla_clean <- convertir_na(datos = tabla_clean,valor = 0)
+
+tabla_clean <- hacer_numeric(datos = tabla_clean,col_desde = 3, col_hasta = ncol(tabla))
+
+
+mes_let <- mes_escrito(mes = mes_inf)
+
+
+```
+
+```{r, echo=FALSE,warning=FALSE,message=FALSE}
+
+DT::datatable(tabla_clean,
+                caption = paste("Mes de",mes_let),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+
+```
+
+
+**Detalle anticonceptivos entregados:** Levonorgestrel + Etinilestradiol (21 comp),	Desogestrel  (28 comp),	Medroxiprogesterona (Inyección trimestral),	CHIP ISD,	Gestodeno 0.02 + etinil estradiol 0.075 (21comp).
+

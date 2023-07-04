@@ -1,0 +1,547 @@
+---
+title: "Resumen cuantitativo"
+author: "Área estadística - DAPPTe"
+date: "05/05/2023"
+output:
+html_document:
+css: style.css
+---
+
+
+```{r, echo=FALSE, include=FALSE}
+#PARAMETROS
+sem <- 27
+op <- 175
+
+
+
+#ver como hacer para los operativos con muchos lugares ej EETB sem 38
+```
+
+
+```{r, include=FALSE}
+#<center>![](logo-msal.jpg)</center>
+```
+
+## Semana `r sem `
+
+<br>
+<br>
+```{r, echo=FALSE, include=FALSE, warning=FALSE,message = FALSE}
+library(kableExtra)#tablas
+library(readxl)#leer excel
+library(tidyverse)
+library(tinytex)#latex
+library(DT)#tablas con botones
+library(lubridate)#fechas
+library(reshape2)#tablas dinamicas
+library(leaflet)
+
+
+
+
+base_tidy <- read_excel("base_datos.xlsx", 
+                        sheet = "Sheet 1", 
+                        col_types = c("numeric", "date", "numeric", 
+                                      "numeric", "numeric", "numeric", 
+                                      "text", "text", "text", "text", "text", 
+                                      "text", "text", "text", "text", "text", 
+                                      "text", "numeric"), na = "0")
+
+col_ok <-c("id", "fecha_unida", "dia","mes","anio", "semana", "marco","provincia","id_op", "municipio","localidad", "lugar","direccion","link","especialidad","descripcion","unidad","cantidad")
+
+
+colnames(base_tidy) <- col_ok
+
+base_r <- read_excel("base_operativos.xlsx", 
+                        sheet = "Sheet 1", 
+                        na = "0")
+
+colnames(base_r)<-gsub(" ", "_", colnames(base_r))
+
+base_final <- read_excel("base_final_op.xlsx", 
+                        sheet = "Sheet 1", 
+                        na = "0")
+
+colnames(base_final)<-gsub(" ", "_", colnames(base_final))
+
+
+
+```
+
+
+```{r, echo=FALSE, message=FALSE}
+tabla_resumen <- base_tidy %>% filter(id_op==op)
+
+firstCap <- function(x) { #esta es una función que pasa de minuscula a nombres propios
+  s <- strsplit(x, " ")[[1]]
+  paste(toupper(substring(s, 1,1)), 
+        substring(s, 2),
+        sep="", collapse=" ")
+}
+
+
+prov <- unique(tabla_resumen$provincia)#obtengo el vector con los lugares que se visito en ese operativo
+muni <- unique(tabla_resumen$municipio)
+loc <- unique(tabla_resumen$localidad)
+
+
+
+if (prov[1] != "CABA") { #Este if es para que CABA no me quede escrito Caba
+  
+  prov1 <-tolower(prov[1])
+  prov1 <-unlist(lapply(prov1, FUN=firstCap))
+  
+} else {prov1 <- prov[1]}
+
+
+muni1 <-tolower(muni[1])    #primero lo paso a minuscula
+muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+
+
+loc1 <-tolower(loc[1])#primero lo paso a minuscula
+loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+
+
+
+#lo mismo de las semanas pero con la tabla resumen
+
+sem_unicas <-  unique(tabla_resumen$semana)#creo un vector con las semanas unicas del archivo
+
+mat_aux<-matrix(sem_unicas,ncol = 1)#esto lo hago para obtener el numero de semanas unicas (filas del vector semanas únicas) para crear la tabla sem_fechas
+a <-nrow(mat_aux)
+
+sem_fechas <- tibble(sem_a = unique(tabla_resumen$semana),#armo una tabla con las semanas que tenga dos columnas con formato fecha
+                     sem_i = as_date(rep(0,a)),
+                     sem_f = as_date(rep(0,a))
+)
+for (s in sem_unicas) {#sirve para pegarle el principio y el final de los operativos en cada semana.
+  aaa <- tabla_resumen %>% 
+    filter(semana == s) %>% 
+    summarise (prim_dia = min(fecha_unida))
+  
+  sem_fechas [which(sem_unicas==s),2] <- aaa
+  
+  bbb <- tabla_resumen %>%
+    filter(semana == s) %>%
+    summarise (ult_dia = max(fecha_unida))
+  
+  sem_fechas [which(sem_unicas==s),3] <- bbb
+}
+
+#aca obtengo el dia de inicio de los operativos y el dia final
+
+opi <- sem_fechas[1,2] 
+
+opf <- sem_fechas[1,3]
+
+
+dias <- unique(tabla_resumen$dia) #obtengo un vector con los días de la semana del operativo, lo uso para varias cosas
+
+
+fila_aux <- base_final %>% dplyr::filter(id_operativo==op, dia == dias[1])
+
+list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+
+list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_por_otras_dependencias_provinciales
+
+list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_por_otras_dependencias_municipales
+
+list_otras_areas <- fila_aux$otras_areas_u_organismos_participantes_del_operativo
+
+
+```
+
+
+
+### Datos del operativo:
+<br>
+<b>Ubicación: </b>       `r paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,".")) `
+<br>
+<br>
+<b>Duración: </b>                  Desde el día `r opi ` hasta el `r opf `.
+<br>
+<br>
+<b>Áreas aportadas por la DAPPTe: </b>
+<br>
+`r if(is.na(list_especialidades)){"No se registran"} else {list_especialidades} `.
+<br>
+<br>
+<b>Áreas aportadas por otras dependencias provinciales: </b>
+<br>
+`r if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov} `.
+<br>
+<br>
+<b>Áreas aportadas por otras dependencias municipales: </b>
+<br>
+`r if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni} `.
+<br>
+<br>
+<b>Organismos participantes del operativo: </b>
+<br>
+`r if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas} `.
+
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+  <div style="border-radius: 50%; overflow: hidden;">
+ 
+    
+```{r, echo=FALSE, warning=FALSE,message = FALSE}
+base_r_filt <- base_r %>% filter(id_operativo == op)
+
+base_r_filt <- base_r_filt %>%
+  separate(latitud, into = c("latitud", "longitud"), sep = ",")
+
+base_r_filt$latitud <- as.numeric(base_r_filt$latitud)
+base_r_filt$longitud <- as.numeric(base_r_filt$longitud)
+
+map <- leaflet() %>%
+  addTiles()  # Añadir capa base de mapas
+
+# Agregar marcadores al mapa utilizando las coordenadas del data frame
+map <- map %>% 
+  addMarkers(data = base_r_filt, lng = ~longitud, lat = ~latitud)
+
+# Imprimir el mapa
+map
+
+```
+    
+    
+  </div>
+</div>
+
+
+
+
+### Resumen cuantitativo de la atención:
+<br>
+```{r echo=FALSE,warning=FALSE,message = FALSE, include=FALSE}
+
+
+
+#dia 1
+
+tabla_dia1 <- tabla_resumen %>% filter(dia == dias[1])
+
+tabla_dia1 <- tabla_dia1 %>% group_by(especialidad,descripcion,unidad) %>% summarise(sum(cantidad))
+
+colnames(tabla_dia1)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia1 <- tabla_dia1 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia1<-dcast(tabla_dia1,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla1 = colSums(tabla_dia1[ , 3:ncol(tabla_dia1)])
+
+sum_tabla1 <- c("Totales", "----",sum_tabla1)
+as.vector(sum_tabla1)
+tabla_dia1 <- rbind(tabla_dia1,sum_tabla1)
+
+
+#día 2
+
+if(is.na(dias[2])){print("")} else {
+tabla_dia2 <- tabla_resumen %>% filter(dia == dias[2])
+
+tabla_dia2 <- tabla_dia2%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia2)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia2 <- tabla_dia2 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia2<-dcast(tabla_dia2,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla2 = colSums(tabla_dia2[ , 3:ncol(tabla_dia2)])
+
+sum_tabla2 <- c("Totales", "----",sum_tabla2)
+as.vector(sum_tabla2)
+tabla_dia2 <- rbind(tabla_dia2,sum_tabla2)
+
+}
+
+#día 3
+
+if(is.na(dias[3])){print("")} else {
+tabla_dia3 <- tabla_resumen %>% filter(dia == dias[3])
+
+tabla_dia3 <- tabla_dia3%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia3)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia3 <- tabla_dia3 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia3<-dcast(tabla_dia3,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla3 = colSums(tabla_dia3[ , 3:ncol(tabla_dia3)])
+
+sum_tabla3 <- c("Totales", "----",sum_tabla3)
+as.vector(sum_tabla3)
+tabla_dia3 <- rbind(tabla_dia3,sum_tabla3)
+
+}
+#día 4
+
+if(is.na(dias[4])){print("")} else {
+tabla_dia4 <- tabla_resumen %>% filter(dia == dias[4])
+
+tabla_dia4 <- tabla_dia4%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia4)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia4 <- tabla_dia4 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia4<-dcast(tabla_dia4,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla4 = colSums(tabla_dia4[ , 3:ncol(tabla_dia4)])
+
+sum_tabla4 <- c("Totales", "----",sum_tabla4)
+as.vector(sum_tabla4)
+tabla_dia4 <- rbind(tabla_dia4,sum_tabla4)
+}
+
+
+#dia 5
+
+
+if(is.na(dias[5])){print("")} else {
+
+  tabla_dia5 <- tabla_resumen %>% filter(dia == dias[5])
+
+tabla_dia5 <- tabla_dia5%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia5)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia5 <- tabla_dia5 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia5<-dcast(tabla_dia5,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla5 = colSums(tabla_dia5[ , 3:ncol(tabla_dia5)])
+
+sum_tabla5 <- c("Totales", "----",sum_tabla5)
+as.vector(sum_tabla5)
+tabla_dia5 <- rbind(tabla_dia5,sum_tabla5)
+
+}
+
+
+
+#dia 6
+
+
+if(is.na(dias[6])){print("")} else {
+
+  tabla_dia6 <- tabla_resumen %>% filter(dia == dias[6])
+
+tabla_dia6 <- tabla_dia6%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia6)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia6 <- tabla_dia6 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia6<-dcast(tabla_dia6,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+
+sum_tabla6 = colSums(tabla_dia6[ , 3:ncol(tabla_dia6)])
+
+sum_tabla6 <- c("Totales", "----",sum_tabla6)
+as.vector(sum_tabla6)
+tabla_dia6 <- rbind(tabla_dia6,sum_tabla6)
+}
+
+#dia 7
+
+
+if(is.na(dias[7])){print("")} else {
+
+  tabla_dia7 <- tabla_resumen %>% filter(dia == dias[7])
+
+tabla_dia7 <- tabla_dia7%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_dia7)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_dia7 <- tabla_dia7 %>% filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_dia7<-dcast(tabla_dia7,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tabla7 = colSums(tabla_dia7[ , 3:ncol(tabla_dia7)])
+
+sum_tabla7 <- c("Totales", "----",sum_tabla7)
+as.vector(sum_tabla7)
+tabla_dia7 <- rbind(tabla_dia7,sum_tabla7)
+
+}
+
+```
+
+
+```{r echo=FALSE,warning=FALSE,message = FALSE,include=FALSE}
+
+#total
+
+
+tabla_resumen_total <- tabla_resumen%>% group_by(especialidad,descripcion,unidad) %>%
+  summarise(sum(cantidad))
+
+colnames(tabla_resumen_total)<-c("Especialidad","Detalle","unidad","cantidad")
+
+
+tabla_resumen_total <- tabla_resumen_total %>% dplyr::filter(unidad %in% c("Personas", "Derivaciones", "Dosis de vacunas aplicadas","Implantes subdérmicos","Libretas AUH","Talleres realizados","PAP","Placas RX"))
+
+tabla_resumen_total<-dcast(tabla_resumen_total,Especialidad + Detalle~unidad,sum,value.var="cantidad")
+
+sum_tablatotal = colSums(tabla_resumen_total[ , 3:ncol(tabla_resumen_total)])
+
+sum_tablatotal <- c("Totales", "----",sum_tablatotal)
+as.vector(sum_tablatotal)
+tabla_resumen_total <- rbind(tabla_resumen_total,sum_tablatotal)
+
+```
+
+<br>
+<br>
+
+
+```{r, echo=FALSE, warning=FALSE,message = FALSE,fig.align='center'}
+
+tabla_resumen_total %>% datatable(
+                caption = "Total",extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = FALSE,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+```
+
+<br>
+<br>
+
+
+```{r, echo=FALSE, warning=FALSE,message = FALSE}
+
+tabla_dia1 %>% datatable(
+                caption = paste("Día", dias[1]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+```
+
+<br>
+<br>
+
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[2]))}
+
+if(is.na(dias[2])){print("")} else {
+tabla_dia2 %>% datatable(
+                caption = paste("Día", dias[2]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+}
+```
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[3]))}
+
+if(is.na(dias[3])){print("")} else {
+tabla_dia3 %>% datatable(
+                caption = paste("Día", dias[3]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+}
+```
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[4]))}
+
+if(is.na(dias[4])){print("")} else {
+tabla_dia4 %>% datatable(
+                caption = paste("Día", dias[4]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+}
+```
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[5]))}
+
+
+isFALSE(is.na(dias[5]))
+
+if(is.na(dias[5])){print("")} else {
+tabla_dia5 %>% datatable(
+                caption = paste("Día", dias[5]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+}
+```
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[6]))}
+
+
+isFALSE(is.na(dias[6]))
+
+if(is.na(dias[6])){print("")} else {
+tabla_dia6 %>% datatable(
+                caption = paste("Día", dias[6]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+  )
+  )
+}
+```
+<br>
+<br>
+```{r, echo=FALSE, warning=FALSE,message = FALSE, include= isFALSE(is.na(dias[7]))}
+
+
+isFALSE(is.na(dias[7]))
+
+if(is.na(dias[7])){print("")} else {
+tabla_dia7 %>% datatable(
+                caption = paste("Día", dias[7]),extensions = 'Buttons', options = list(
+    dom = 'Bfrtip',
+    pageLength = 30,
+    elementId = NULL,
+    buttons = c('copy', 'csv', 'excel', 'pdf', 'print')
+    
+  )
+  )
+}
+```
+<br>
+<br>

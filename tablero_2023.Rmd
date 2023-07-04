@@ -1,0 +1,3018 @@
+---
+title: "Ministerio de Salud   "
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+    vertical_layout: fill
+    theme: cerulean
+    css: estilo.css
+
+---
+
+
+
+```{r librerias, message=FALSE, warning=FALSE, include=FALSE}
+
+
+library(flexdashboard)
+#library(shinydashboard)
+library(readxl)           
+library(readr)
+library(tidyverse)
+library(leaflet)
+library(DT)
+library(crosstalk)
+library(summaryBox)
+library(lubridate)
+library(htmltools)
+library(kableExtra)
+library(plotly)
+#library(shiny)
+
+```
+```{r dataset, message=FALSE, warning=FALSE}
+source("dappt_statsn.R")
+
+
+```
+
+
+# Inicio {data-icon="fa-home" .bprueba}
+
+## column  
+
+### {.bginstitu}
+
+
+<div style='width: 40%;  margin: auto'>
+
+<h2>Dirección de Articulación de Políticas Públicas en Territorio</h2>
+</div>
+
+<hr style='margin: 50px auto'>
+
+<h3 style = 'text-align:center; color:#50535c;'>Área de Estadísticas</h3>
+
+<h5 style = 'text-align:center; color:#50535c;'>
+Informe actualizado al: `r as.character(ult_dia, format="%d de %B de %Y")`. Semana `r ult_semana`.
+</h5>
+
+<section style= 'padding-top: 150px'>
+<center>
+<img src="logo-msal.jpg" alt="Imagen MSal" width="40%" >
+</center>
+</section>
+
+
+
+
+
+
+
+# Semana actual {data-navmenu="Semanal"}
+
+## column {data-width=180,}
+
+### {.bgcol1}
+
+`r h4("Operativos Semana Actual")`
+
+
+```{r}
+
+filter_select("op", "Selecciones operativo", base_tus_sd, ~id_ope, multiple = FALSE,)
+
+```
+
+
+
+`r br()`
+
+
+```{r}
+
+filter_select("op", "Seleccion especialidad", base_presta_sd, ~especialidad, multiple = TRUE,)
+
+filter_select("op", "Selecciones unidad de medida", base_presta_sd, ~uni_medida, multiple = TRUE,)
+
+```
+
+
+
+`r br()`
+
+
+`r hr()`
+
+**NOTA:** Informe actualizado al día `r as.character(ult_dia, format="%A, %d de %B de %Y")`. Semana `r ult_semana`.
+
+
+## column {.tabset data-width=620,}
+
+
+### Listado de operativos
+
+
+```{r}
+
+op_ultsem %>% 
+  DT::datatable(colnames = c("Id operativo"=1,"Días totales"=2,"Dispositivo"=3, "Provincia"=4, "Municipio"= 5,"Localidad"=6, "Lugar"= 7),
+                #style = 'bootstrap',
+                rownames = FALSE,
+                caption = 'Operativos semana actual',
+                #caption = htmltools::tags$caption(
+                #           style = 'caption-side: bottom; text-align: center;',
+                #                   'Table 2: ', htmltools::em('Caption for the table.')),
+                #filter = 'top',
+                selection = "none",
+                extensions = 'Buttons', 
+                #options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
+                #dom B frtip, es para indicar donde iran los botones, ver mas esto:
+                #https://rstudio.github.io/DT/003-tabletools-buttons.html...
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2,3,4,5))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#2F3237', 'color':'#fff'});",
+                              "}")
+                               ),
+                ) #%>% 
+
+
+ # formatStyle("Semana",  color = 'white', backgroundColor = 'blue', fontWeight = 'bold',lineHeight='50%')
+ # formatRound(table,columns,digits = 2,interval = 3,mark = ",", dec.mark = getOption("OutDec"),
+     #zero.print = NULL,rows = NULL)
+ 
+#hay mas format ver ayuda
+
+```
+
+### Datos
+
+```{r}
+
+base_presta_sd %>% 
+  DT::datatable(colnames = c("Id Operativo"=1, "Especialidad"=2, "Detalle especialidad"= 3,"Unidad de medida"=4, "Cantidad"= 5),
+                #editable = list(target = 'row', disable = list(columns = c(1, 3, 4))), #con esto podes editar los valores de las celdas, por ejemplo editas y despues descargas un excel o pdf
+                rownames = FALSE, #esto es para sacar id
+                elementId = "none",
+                selection = "none",
+                extensions = 'Buttons',
+                options = list(pageLength=100,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2,3,4))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#2F3237', 'color':'#fff'});",
+                              "}")
+                               ),
+                )
+
+```
+
+## column {data-width=400,}
+
+### Operativos realizados por día
+
+```{r}
+
+grafico_opdia
+```
+
+### Personas atendidas por día
+
+```{r}
+
+
+
+sda
+```
+
+
+### Proporción de la atención por especialidad
+
+
+```{r}
+
+
+grafico5_plotly
+
+```
+
+
+
+
+# `r paste("Semana",max(unique(base_r$semana))-1) ` {data-navmenu="Semanal"}
+
+## column {data-width=180,}
+
+### {.bgcol1}
+
+`r h4(paste("Operativos Semana",max(unique(base_r$semana))-1))`
+
+
+```{r}
+
+filter_select("op", "Selecciones operativo", base_tus_sd2, ~id_ope, multiple = FALSE,)
+
+```
+
+
+
+`r br()`
+
+
+```{r}
+
+filter_select("op", "Seleccion especialidad", base_presta_sdsemanapasada, ~especialidad, multiple = TRUE,)
+
+filter_select("op", "Selecciones unidad de medida", base_presta_sdsemanapasada, ~uni_medida, multiple = TRUE,)
+
+```
+
+
+
+## column {.tabset data-width=620,}
+
+
+### Listado de operativos
+
+
+```{r}
+
+op_ultsem2 %>% 
+  DT::datatable(colnames = c("Id operativo"=1,"Días totales"=2,"Dispositivo"=3, "Provincia"=4, "Municipio"= 5,"Localidad"=6, "Lugar"= 7),
+                #style = 'bootstrap',
+                rownames = FALSE,
+                caption = 'Operativos semana actual',
+                #caption = htmltools::tags$caption(
+                #           style = 'caption-side: bottom; text-align: center;',
+                #                   'Table 2: ', htmltools::em('Caption for the table.')),
+                #filter = 'top',
+                selection = "none",
+                extensions = 'Buttons', 
+                #options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
+                #dom B frtip, es para indicar donde iran los botones, ver mas esto:
+                #https://rstudio.github.io/DT/003-tabletools-buttons.html...
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#2F3237', 'color':'#fff'});",
+                              "}")
+                               ),
+                ) #%>% 
+
+
+ # formatStyle("Semana",  color = 'white', backgroundColor = 'blue', fontWeight = 'bold',lineHeight='50%')
+ # formatRound(table,columns,digits = 2,interval = 3,mark = ",", dec.mark = getOption("OutDec"),
+     #zero.print = NULL,rows = NULL)
+ 
+#hay mas format ver ayuda
+
+```
+
+### Datos
+
+```{r}
+
+base_presta_sdsemanapasada %>%
+  DT::datatable(colnames = c("Id operativo"=1, "Especialidad"=2, "Detalle especialidad"= 3,"Unidad de medida"=4, "Cantidad"= 5),
+          rownames = FALSE, #esto es para sacar id
+        
+             selection = "none",
+                extensions = 'Buttons',
+                options = list(pageLength=100,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2,3,4))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#2F3237', 'color':'#fff'});",
+                              "}")
+                               ),
+                )
+
+```
+
+## column {data-width=400,}
+
+### Cantidad de operativos por día
+
+```{r}
+
+grafico_opdia2
+```
+
+### Personas atendidas por día
+
+```{r}
+
+
+
+sda2
+```
+
+
+### Proporción de la atención por especialidad
+
+
+```{r}
+
+
+grafico5_plotly2
+
+```
+
+
+
+
+
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+
+base_final_op <- base_final_op[order(base_final_op$`id operativo`), ]
+o<-1
+if(is.na(base_final_op[o,1])){ #TODO LO QUE PUSE ACA ES PARA QUE NO SE ROMPA, SIMPLEMENTE ASIGNE "" A TODAS LAS COSAS QUE QUEDARON SIN ASIGNACIÓN DEBIDO A QUE PASO MUCHO TIEMPO Y NO ENCENTRA DATOS PARA LA SEMANA ANTERIOR, QUEDA TODO SIN ASIGNAR Y SE ROMPE
+  
+  
+  op1<- ""
+    t<-""
+    q<-""
+    n<-""
+    
+    prov <- ""
+    muni <- ""
+    loc <- ""
+
+      
+      prov1 <-""
+      prov1 <-""
+
+    
+    
+    muni1 <-""    #primero lo paso a minuscula
+    muni1 <-"" # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+  
+    
+    w<-""
+    
+    w <-""
+    
+    opi<-""
+    opf<-""
+    
+    fila_aux<-""
+    
+    list_especialidades <-""
+    
+    list_especialidades_ext_prov <-""
+    
+    list_especialidades_ext_muni <-""
+    
+    list_otras_areas <-""
+    
+    
+    inf_cierre<-""
+    inf_cierre2<-""
+    inf_cierre3<-""
+    inf_cierre4<-""
+    
+    semanaactual_ono<-"" 
+    sup<-""
+    fech<-""
+  
+  
+}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-2
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-3
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-4
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-5
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-6
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-7
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-8
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-9
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-10
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-11
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-12
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-13
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+```{r,include=FALSE,echo=FALSE,warning=FALSE,message=FALSE}
+o<-14
+if(is.na(base_final_op[o,1])){}else{
+  if(is.null(base_final_op[o,1])){}else{
+    op1<-base_final_op[o,]
+    t<-op1[,7]
+    q<-op1[,11]
+    n<-op1[,9]
+    
+    prov <- base_final_op[[o,8]]
+    muni <- base_final_op[[o,10]]
+    loc <- base_final_op[[o,11]]
+    
+    
+    
+    if (prov != "CABA") { #Este if es para que CABA no me quede escrito Caba
+      
+      prov1 <-tolower(prov)
+      prov1 <-unlist(lapply(prov1, FUN=firstCap))
+      
+    } else {prov1 <- prov}
+    
+    
+    muni1 <-tolower(muni)    #primero lo paso a minuscula
+    muni1 <-unlist(lapply(muni1, FUN=firstCap)) # despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    
+    loc1 <-tolower(loc)#primero lo paso a minuscula
+    loc1 <-unlist(lapply(loc1, FUN=firstCap))# despues lo paso a nombre propio con la funcion que cargué mas atras
+    
+    colnames(base_final_op)<-c("id","fecha","dia","mes","anio","semana","dispositivo","provincia","id_operativo","municipio_departamento_comuna","localidad_barrio","lugar","direccion","link_georreferenciacion","latitud","longitud","participantes_de_la_dappte_por_areas","especialidades_aportadas_provinciales","especialidades_aportadas_municipales","otros_organismos","observaciones_generales","falicitadores","cuestiones_logisticas","otras_observaciones")
+    
+    w<-base_final_op[[o,9]]
+    
+    w <-base_t %>% filter(id_op == w)
+    
+    opi<-min(w$dia)
+    opf<-max(w$dia)
+    
+    fila_aux<-base_final_op[o,]
+    
+    list_especialidades <- fila_aux$participantes_de_la_dappte_por_areas
+    
+    list_especialidades_ext_prov <- fila_aux$especialidades_aportadas_provinciales
+    
+    list_especialidades_ext_muni <- fila_aux$especialidades_aportadas_municipales
+    
+    list_otras_areas <- fila_aux$otros_organismos
+    
+    
+    inf_cierre<-fila_aux$observaciones_generales
+    inf_cierre2<-fila_aux$facilitadores
+    inf_cierre3<-fila_aux$cuestiones_logisticas
+    inf_cierre4<-fila_aux$otras_observaciones
+    
+    semanaactual_ono<- if(base_final_op[[o,6]]==max(unique(base_r$semana))){"Semana actual"}else{"Semana pasada"}
+    sup<-base_final_op[[o,26]]
+    fech<-base_final_op[[o,25]]
+  }
+}
+```
+
+
+# `r if(is.na(base_final_op[o,7])){""} else {paste0(n," - ",t," - ",q,"       (",semanaactual_ono,")")} ` {data-navmenu="Informes supervisores"}
+
+## Colum
+
+
+### `r paste("") ` {.colinf}
+
+<b>Ubicación: </b> <br> <br>  `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {paste(paste0(loc1,","), paste0(muni1,","), paste0(prov1,"."))}} `
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Duración: </b> <br> <br>         Desde el día `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else {opi}} ` hasta el `r if(is.null(base_final_op[o,1])){""} else {if(is.na(base_final_op[o,1])){""} else { opf}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por la DAPPTe: </b><br> <br>
+`r if(is.null(list_especialidades)){""} else {if(is.na(list_especialidades)){"No se registran"} else {list_especialidades}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+<b>Áreas aportadas por otras dependencias provinciales: </b><br> <br>
+`r if(is.null(list_especialidades_ext_prov)){""} else {if(is.na(list_especialidades_ext_prov)){"No se registran"} else {list_especialidades_ext_prov}} `.
+<br>
+<br>
+
+`r hr()`
+`r hr()`
+
+<b>Áreas aportadas por otras dependencias municipales: </b><br><br>
+
+`r if(is.null(list_especialidades_ext_muni)){""} else {if(is.na(list_especialidades_ext_muni)){"No se registran"} else {list_especialidades_ext_muni}} `.
+<br>
+<br>
+`r hr()`
+`r hr()`
+
+<b>Organismos participantes del operativo: </b><br><br>
+`r if(is.null(list_otras_areas)){""} else {if(is.na(list_otras_areas)){"No se registran"} else {list_otras_areas}} `.
+<br>
+<br>
+
+
+## Colum
+
+
+### <b>Informe de cierre del operativo</b> {data-width=1900 .colinf2}
+<br>
+<br>
+<DIV align="right">
+ <b>`r fech `</b>
+</DIV>
+<br>
+<br>
+`r if(is.null(inf_cierre)){""} else {if(is.na(inf_cierre)){"No se registran"} else {inf_cierre}} `
+<br>
+<br>
+<b>Facilitadores y obstaculizadores identificados: </b>
+`r if(is.null(inf_cierre2)){"No se registran"} else{if(is.na(inf_cierre2)){"No se registran"} else {inf_cierre2}}`
+<br>
+<br>
+<b>Cuestiones logísticas: </b>
+`r if(is.null(inf_cierre3)){""} else {if(is.na(inf_cierre3)){"No se registran"} else {inf_cierre3}}`
+<br>
+<br>
+<b>Otras observaciones: </b>
+`r if(is.null(inf_cierre4)){""} else {if(is.na(inf_cierre4)){"No se registran"} else {inf_cierre4}}`
+<br>
+<br>
+<br>
+<br>
+<b>`r sup `</b>
+
+
+
+# Faltantes {data-icon="fa-list"}
+
+## column {data-width=260,}
+
+### row
+
+```{r}
+valueBox(value = format(oper_ultfecha, big.mark= ".", decimal.mark = ","),
+         caption = "Fecha ultimo registro Operativos",
+         color = ifelse(ultactual_opera>=2, "#ff8478", "#76EEC6"),
+         )
+```
+
+### Semana actual {.faltcol}
+
+
+```{r, message=FALSE, warning=FALSE}
+
+graficofaltantes_plotly
+
+```
+
+
+
+
+
+`r hr()`
+
+
+
+
+### Faltantes total anual { data-height=500 .faltcol}
+
+
+```{r}
+graficofaltantestotal_plotly
+```
+
+
+
+## column {.tabset .faltcol2}
+
+### Faltantes semana actual{.faltcol2}
+
+Se considera faltante una vez realizado el operativo.
+
+```{r}
+if(ultactual_opera>=2){
+falt_ultsem_sd %>% 
+  DT::datatable(colnames = c("Id"=1,"Fecha"=3, "Dispositivo"=4, "Provincia"= 5,"Id oper"=2, "Municipio"= 6, "Localidad"= 7, "Lugar"= 8),
+                elementId = c(falt_ultsem$id),
+                selection = "none",
+                extensions = 'Buttons',
+                options = list(pageLength=100,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#670010', 'color':'#fff'});",
+                              "}")
+                               ),
+                )
+}else{falt_ultsem_sd %>% 
+  DT::datatable(colnames = c("Id"=1,"Fecha"=3, "Dispositivo"=4, "Provincia"= 5,"Id oper"=2, "Municipio"= 6, "Localidad"= 7, "Lugar"= 8),
+                elementId = c(falt_ultsem$id),
+                selection = "none",
+                extensions = 'Buttons',
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#038554', 'color':'#fff'});",
+                              "}")
+                               ),
+                )}
+
+
+```
+
+
+
+
+
+### Faltantes totales {.faltcol}
+
+
+```{r message=FALSE, warning=FALSE}
+if(is.na(falt_ultsem[1,1])){base_r2_sd<-base_r2}else{base_r2_sd<-base_r2}#esto es porque si hay faltantes esta semana entonces no encuentra el objeto base_rd_sd
+
+if(ultactual_opera>=2){base_r2_sd %>% 
+  DT::datatable(colnames = c("Id"=1,"Fecha"=3, "Dispositivo"=4, "Provincia"= 5,"Id oper"=2, "Municipio"= 6, "Localidad"= 7, "Lugar"= 8),
+                elementId = c(falt_ultsem$id),
+                selection = "none",
+                extensions = 'Buttons', 
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#670010', 'color':'#fff'});",
+                              "}")
+                               ),
+                )
+}else{base_r2_sd %>% 
+  DT::datatable(colnames = c("Id"=1,"Fecha"=3, "Dispositivo"=4, "Provincia"= 5,"Id oper"=2, "Municipio"= 6, "Localidad"= 7, "Lugar"= 8),
+                elementId = c(falt_ultsem$id),
+                selection = "none",
+                extensions = 'Buttons', 
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#038554', 'color':'#fff'});",
+                              "}")
+                               ),
+                )}
+
+```
+
+
+## Colum {data-width=260 .faltcol}
+
+### {.faltcol}
+
+```{r}
+valueBox(value = format(deriv_ult, big.mark= ".", decimal.mark = ","),
+         caption = "Fecha ultimo registro Derivaciones",
+         color = ifelse(deriv_u>=7, "#ff8478", "#76EEC6"),
+         )
+```
+
+
+### Sguimientos por día {.faltcol}
+
+
+```{r, message=FALSE, warning=FALSE, size=50}
+
+graf_seguifalt
+
+```
+
+
+
+
+### fila
+<br>
+<br>
+```{r}
+valueBox(value = format(ultimoreg_met, style = "font-size: 50%"),
+         caption = "Fecha último registro Métodos",
+         color = ifelse(spam >= 7, "#ff8478", "#76EEC6"),
+         )
+```
+
+### Cantidad de registros de métodos en el mes corriente {.faltcol}
+```{r}
+if(spam>=7){gauge(entradas_metodos, min = 0, max = 6, symbol = '',
+      gaugeSectors(success = c(0, 6), 
+                   colors = c("#670010")
+      ))
+  }else{
+        gauge(entradas_metodos, min = 0, max = 6, symbol = '',
+      gaugeSectors(success = c(0, 6), 
+                   colors = c("#038554")
+      ))
+}
+```
+
+
+# Georeferenciación {data-icon="fa-street-view"}
+
+## column {data-width=270}
+
+
+```{r message=FALSE, warning=FALSE, include=FALSE,echo=FALSE}
+dappt_base_c <- dappt_base %>% 
+  #filter(uni_medida == "Personas") %>% 
+  group_by(semana, operativo, provincia,  localidad, uni_medida, sem_i, sem_f, lat, lon) %>% 
+  summarise(totales = sum(cantidad, na.rm = T)) %>% 
+  mutate(sem_i = as.character (sem_i ,format= "%d-%b")) %>% 
+  mutate(sem_f = as.character (sem_f ,format= "%d-%b")) %>% 
+  relocate(totales, .after = uni_medida) %>% 
+  relocate(c(sem_i,sem_f), .after = semana)
+
+
+```
+
+
+
+### { .bgcol}
+
+`r h4("Georeferenciación de Operativos") `
+
+`r hr() `
+
+```{r}
+#Georeferenciación
+
+dappt_base_a <- SharedData$new(dappt_base_c)
+#usar este slider
+filter_slider("mapa","Seleccione Semanas:", dappt_base_a, #step = 1,
+              width = "90%", column = ~ semana) #idea, post = "%b")
+
+#filter_select("prov","Seleccione la Provincia:", dappt_base_a, group = ~provincia, multiple = FALSE)
+#filter_checkbox("local","Seleccione la Localidad", dappt_base_a, group = ~localidad, inline = TRUE)
+
+filter_checkbox("opera","Seleccione Operativo:", dappt_base_a, group = ~operativo, columns = 2)
+filter_select("prov","Seleccione Provincia:", dappt_base_a, group = ~provincia, multiple = TRUE,)
+#filter_select("local","Seleccione Localidad:", dappt_base_a, group = ~localidad, multiple = FALSE)
+
+#inline = T,
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#falta terminar este
+dappt_base_d <- dappt_base %>% 
+  select(semana, operativo, localidad, lugar, lat, lon) %>% 
+  group_by(operativo, localidad, lugar, lat, lon) %>% 
+  summarise(sema = n())
+
+
+```
+
+
+
+## column {.tabset}
+
+### Georeferenciación 
+
+```{r}
+#htmltools::HTML() ver para correr HTML
+
+dappt_base_a %>% 
+  leaflet() %>% 
+  addProviderTiles("Esri") %>%   #"CartoDB.Positron"
+  addMarkers(lng = ~lon,
+             lat = ~lat, 
+             label = ~operativo,
+             popup = ~paste0("<b>Provincia:</b>"," ",provincia,"<br/>", "<b>Localidad: </b>", localidad)   #al label lo puedo armar antes con paste y escritura
+             ) 
+
+#pal <- colorNumeric(palette = "Spectral", domain = c(df$size), reverse = TRUE)
+    
+#addCircleMarkers(radius = ~size, color = ~pal(size), fill = ~pal(size),
+#                 popup= ~paste0("mi tamaño es:",size)) estos son círculos coloreados según tamaño
+#se usa igual en addMarkers
+
+#addLegend(pal = pal, values = df$size, opacity = 0.75, 
+#          title = "Tamaño", position = "topleft" o "bottomright" etc)
+#añade un cuadrito explicativo dentro del mapa
+
+
+```
+
+
+### Ver en Tabla
+
+
+```{r}
+dappt_base_a %>% 
+  DT::datatable(colnames = c("Id"=1,"Semana"=2,"Inicio"=3,"Final"=4, "Operativo"=5, "Provincia"=6,
+                             "Localidad"=7,"Prestaciones"=8, "Cantidad"=9, "Lat"=10, "Lon"=11),
+    selection = "none",
+    extensions = 'Buttons', 
+    options = list(pageLength=10,
+                   language = list(search = 'Buscar:'),
+                   dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                   columnDefs = list(list(className = 'dt-center', targets = c(0,1,2,3))),
+                   initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#9283BE', 'color':'#fff'});",
+                              "}")
+                   )
+  ) %>% 
+  formatRound(columns= c(9,10),
+              digits = 2) 
+#%>% 
+ # formatStyle(lineHeight='50%')  #achica el alto de las filas en %
+
+# Colores Institucionales del manual de Presidencia
+#EE3D8F color rosado
+#F7941E color naranja
+#9283BE color violeta
+#D7DF23 color verde lima
+#50B8B1 color celeste parecido al institucional principal
+```
+
+
+# Operativos {data-navmenu="Resumen gráfico"}
+
+## column {data-width=600}
+### **Cantidad de días de operativos** 
+
+```{r}
+#, data-icon="glyphicon-stats"
+grafico1_plotly
+```
+
+## column 
+### **Operativos por mes**
+
+```{r}
+ggplotly(grafico2)%>% 
+  config(modeBarButtonsToRemove=c('zoom2d', 'pan2d', 'select2d',
+                                  'lasso2d', 'zoomIn2d', 'zoomOut2d',
+                                  'autoScale2d','resetScale2d'))
+```
+
+# Personas atendidas {data-navmenu="Resumen gráfico"}
+
+## column {data-width=150}
+
+
+### {data-width=2.3}
+
+```{r}
+
+valueBox(value = format(cant_op, big.mark= ".", decimal.mark = ","),
+         caption = "Operativos",
+         color =  "#76EEC6", 
+         icon = "glyphicon-map-marker")
+### {data-width=4, .value-box}
+```
+
+### {data-width=2.3}
+
+```{r}
+valueBox(value = format(cant_dias_op, big.mark= ".", decimal.mark = ","),
+         caption = "Días de operativos",
+         color = "#BCEE68", 
+         icon = "fa-calendar",
+         #href = "Dash_ejec_20220630.html#ideas" ver si esto corre con el runtime:shiny
+         )
+```
+
+### {data-width=2.3}
+
+```{r}
+valueBox(value = format(cant_pers[[1,1]], big.mark= ".", decimal.mark = ","),
+         caption = "Personas atendidas",
+         color = "#A4D3EE",  # "#EEE685" 
+         icon = "fa-users",
+         )
+```
+
+### {data-width=2.3}
+
+```{r}
+valueBox(value = format(cant_prest, big.mark= ".", decimal.mark = ","),
+         caption = "Prestaciones",
+         color = "#EE7AE9", 
+         icon = "fa-briefcase-medical",
+         )
+```
+
+### {data-width=2.3}
+
+```{r}
+valueBox(value = format(cant_espe, big.mark= ".", decimal.mark = "," ),
+         caption = "Especialidades",
+         color = "#008B8B", 
+         icon = "fa-stethoscope",
+         )
+```
+
+
+## column
+### **Evolución semanal de personas atendidas por cada especialidad**
+
+```{r}
+ggplotly(grafico3)%>% 
+  config(modeBarButtonsToRemove=c('zoom2d', 'pan2d', 'select2d',
+                                  'lasso2d', 'zoomIn2d', 'zoomOut2d',
+                                  'autoScale2d','resetScale2d'))
+
+```
+
+
+
+
+
+
+
+
+
+# Metas Físicas {data-icon="glyphicon-check"}
+
+## {data-width=150}
+
+
+> <font color="#0098D5"> *Metas Físicas Anuales*</font>
+
+### <font color="#50535C"> *Cumplimiento mayor al 90%*</font>{.bgcol}
+
+```{r}
+# VER valor en referencia a la ejecucion parcial
+# ver con Nico como definir los rangos en porcentaje para cada parte del año.-
+
+gauge(verde, min = 0, max = 17, #symbol = '%',
+      gaugeSectors(success = c(0, 17), 
+                   colors = c("#44eb57") #"green"
+))
+```
+
+### <font color="#50535C"> *Cumplimiento entre 60 y 90%*</font>{.bgcol}
+
+```{r}
+
+gauge(amarillo, min = 0, max = 17, gaugeSectors(warning = c(0, 17),
+                                          colors = c("yellow") #f7ed63
+))
+```
+
+### <font color="#50535C"> *Cumplimiento menor al 60%*</font>{.bgcol}
+
+```{r}
+
+gauge(rojo, min = 0, max = 17, gaugeSectors(danger = c(0, 17), 
+                                         colors = c("#fa6023") #fa6216
+))
+```
+
+
+## {.tabset .tabset-fade .bdlcol}
+
+### Metas Fisicas Anuales {.bdlcol}
+
+`r br()`
+
+<font color="#b0adac">Actualizadas al `r metas_ejec` Trimestre</font>
+
+```{r}
+metas_anual %>% 
+  kable(col.names = c("Descripción de la Medición", "Unidad de Medida", "Programado Anual",
+                      paste("Prog. al ",metas_ejec," trim (acum)"),
+                      paste("Ejec. al ",metas_ejec," trim (acum)"), "Ejecución (%)"), 
+        caption = "Metas Físicas Anuales - Año 2022", 
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = c( "llrrrr")) %>% 
+  add_footnote(notation = "symbol", "N/A: No Disponible") %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(0, bold = F, color = "white", background = "#0098D5", align = "c") %>% 
+  column_spec(6, background =  ifelse(is.na(metas_anual$porc_ejec),"white",
+                                      ifelse(metas_anual$porc_ejec >= 90, "#44eb57",
+                                             ifelse (metas_anual$porc_ejec >= 60,
+                                                     #"#f7ed63","#fa6216"))),
+                                                     "yellow","#fa6023"))),
+              bold = ifelse(is.na(metas_anual$porc_ejec),F,T),
+              color = ifelse(is.na(metas_anual$porc_ejec),"gray", "#404042")
+  ) 
+
+```
+
+
+
+### - 1° Trimestre -{ .bdlcol}
+
+`r br()`
+```{r}
+
+metas_trim1 %>% 
+  kable(col.names = c("Descripción de la Medición", "Unidad de Medida", "Programado",
+                      "Ejecutado", "Ejecución (%)"), 
+        caption = "Metas Físicas 1° Trimestre",
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = c( "llrrr")) %>% 
+  add_footnote(notation = "symbol", "N/A: No Disponible") %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(0, bold = F, color = "white", background = "#0098D5", align = "c") %>% 
+  column_spec(5, background =  ifelse(is.na(metas_trim1$porc_ejec1),"white",
+                                      ifelse(metas_trim1$porc_ejec1 >= 90, "#44eb57",
+                                             ifelse (metas_trim1$porc_ejec1 >= 60,
+                                                     #"#f7ed63","#fa6216"))),
+                                                     "yellow","#fa6023"))),
+              bold = ifelse(is.na(metas_trim1$porc_ejec1),F,T),
+              color = ifelse(is.na(metas_trim1$porc_ejec1),"gray", "#404042")
+  ) 
+
+```
+
+### - 2° Trimestre -{ .bdlcol}
+
+`r br()`
+```{r}
+metas_trim2 %>% 
+  kable(col.names = c("Descripción de la Medición", "Unidad de Medida", "Programado",
+                      "Ejecutado", "Ejecución (%)"), 
+        caption = "Metas Físicas 2° Trimestre",
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = c( "llrrr")) %>% 
+  add_footnote(notation = "symbol", "N/A: No Disponible") %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(0, bold = F, color = "white", background = "#0098D5", align = "c") %>% 
+  column_spec(5, background =  ifelse(is.na(metas_trim2$porc_ejec2),"white",
+                                      ifelse(metas_trim2$porc_ejec2 >= 90, "#44eb57",
+                                             ifelse (metas_trim2$porc_ejec2 >= 60,
+                                                     #"#f7ed63","#fa6216"))),
+                                                     "yellow","#fa6023"))),
+              bold = ifelse(is.na(metas_trim2$porc_ejec2),F,T),
+              color = ifelse(is.na(metas_trim2$porc_ejec2),"gray", "#404042")
+  ) 
+
+```
+
+### - 3° Trimestre -{ .bdlcol}
+
+`r br()`
+
+```{r}
+metas_trim3 %>% 
+  kable(col.names = c("Descripción de la Medición", "Unidad de Medida", "Programado",
+                      "Ejecutado", "Ejecución (%)"), 
+        caption = "Metas Físicas 3° Trimestre",
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = c( "llrrr")) %>% 
+  add_footnote(notation = "symbol", "N/A: No Disponible") %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(0, bold = F, color = "white", background = "#0098D5", align = "c") %>% 
+  column_spec(5, background =  ifelse(is.na(metas_trim3$porc_ejec3),"white",
+                                      ifelse(metas_trim3$porc_ejec3 >= 90, "#44eb57",
+                                             ifelse (metas_trim3$porc_ejec3 >= 60,
+                                                     #"#f7ed63","#fa6216"))),
+                                                     "yellow","#fa6023"))),
+              bold = ifelse(is.na(metas_trim3$porc_ejec3),F,T),
+              color = ifelse(is.na(metas_trim3$porc_ejec3),"gray", "#404042")
+  ) 
+
+```
+
+
+### - 4° Trimestre -{ .bdlcol}
+
+`r br()`
+
+```{r}
+metas_trim4 %>% 
+  kable(col.names = c("Descripción de la Medición", "Unidad de Medida", "Programado",
+                      "Ejecutado", "Ejecución (%)"), 
+        caption = "Metas Físicas 4° Trimestre",
+        format.args = list(decimal.mark = ",", big.mark = "."),
+        align = c( "llrrr")) %>% 
+  add_footnote(notation = "symbol", "N/A: No Disponible") %>% 
+  kable_styling(full_width = F) %>% 
+  row_spec(0, bold = F, color = "white", background = "#0098D5", align = "c") %>% 
+  column_spec(5, background =  ifelse(is.na(metas_trim4$porc_ejec4),"white",
+                                      ifelse(metas_trim4$porc_ejec4 >= 90, "#44eb57",
+                                             ifelse (metas_trim4$porc_ejec4 >= 60,
+                                                     #"#f7ed63","#fa6216"))),
+                                                     "yellow","#fa6023"))),
+              bold = ifelse(is.na(metas_trim4$porc_ejec4),F,T),
+              color = ifelse(is.na(metas_trim4$porc_ejec4),"gray", "#404042")
+  ) 
+
+```
+
+
+
+
+# Datos históricos {data-icon="fa-list"}
+
+## column {data-width=210,}
+
+### {.bgcol}
+
+`r h4("Operativos Semanales")`
+
+`r hr()`
+
+```{r}
+dappt_base_sem_a <- SharedData$new(dappt_base_sem)
+
+filter_select("sema","Seleccione Semana:", dappt_base_sem_a, group = ~semana, multiple = T)
+
+```
+
+
+`r hr()`
+
+```{r}
+filter_select("presta","Seleccione operativo:", dappt_base_sem_a, group = ~id_op, multiple = T)
+
+```
+
+
+`r hr()`
+`r hr()`
+
+
+```{r}
+filter_select("marco","Seleccione Prestaciones:", dappt_base_sem_a, group = ~uni_medida, multiple = T)
+
+```
+
+Puede seleccionar múltiples opciones.
+
+
+
+
+
+<i>Para borrar la selección utilizar la tecla Suprimir o BackSpace.</i>
+`r br()`
+
+`r br()`
+
+
+`r hr()`
+
+**NOTA:** Informe actualizado al día `r as.character(ult_dia, format="%A, %d de %B de %Y")`. Semana `r ult_semana`.
+
+## column
+
+### Total de Prestaciones realizadas, agrupadas por Semana: {.bdlcol2}
+
+```{r}
+# cuando hay varias tablas puedo configurar opciones globales para todas a la vez.-
+#options(DT.options = list(pageLength = 10, 
+                          #language = list(search = 'Buscar:'),
+                          #language = list('show _MENU_ entries' = 'Mostrar _MENU_ si') #traducir bien este
+                          #ver como se hace con el resto para traducirlo
+                          #dom = 't', dom = 'ft' , dom = 'frtip' (este es el completo por default)
+                          #dom maneja toda la tabla, search, etc. y cada cosa que se agrega o saca
+                          #extensions = 'Buttons', 
+                          #options = list(dom = 'Blfrtip', buttons = c( 'csv', 'excel', 'pdf')),
+                          #))
+
+dappt_base_sem_a %>% 
+  DT::datatable(colnames = c("Id operativo"=1, "Primer día"= 2,"Último día"=3, "Semana"= 4, "Dispositivo" = 5,"Especialidad" = 6, "Descripción" = 7, "Prestación" = 8, "Cantidad"=9),
+                #style = 'bootstrap',
+                rownames = FALSE,
+                #caption = 'Tabla 1: Acá puede ir título de la tabla.',
+                #caption = htmltools::tags$caption(
+                #           style = 'caption-side: bottom; text-align: center;',
+                #                   'Table 2: ', htmltools::em('Caption for the table.')),
+                #filter = 'top',
+                selection = "none",
+                extensions = 'Buttons', 
+                #options = list(dom = 'Bfrtip', buttons = c('copy', 'csv', 'excel', 'pdf', 'print'))
+                #dom B frtip, es para indicar donde iran los botones, ver mas esto:
+                #https://rstudio.github.io/DT/003-tabletools-buttons.html...
+                options = list(pageLength=10,
+                               language = list(search = 'Buscar:'),
+                               dom = 'Blfrtip', buttons = c('excel', 'pdf'),
+                               columnDefs = list(list(className = 'dt-center', targets = c(0,1,2))),
+                               order = list(list(1, "asc"), list(2, "asc"), list(3, "asc")), 
+                               #para ordenar descendente usar "desc"
+                               initComplete = JS(
+                              "function(settings, json) {",
+                              "$(this.api().table().header()).css({'background-color':
+                              '#27a4f2', 'color':'#fff'});",
+                              "}")
+                               ),
+                ) 
+
+```
+
+
+
+
+
+
+
+
+
+

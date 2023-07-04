@@ -1,0 +1,47 @@
+
+
+
+#* {
+ # margin: 1cm;
+#background-color: red;
+#}
+
+body{
+margin: 3cm;
+  #padding: 4cm;# El área de padding es el espacio entre el contenido del elemento y su borde ( border )
+break-after: page;
+
+}
+
+p, h1, h2, h3 {
+font-family: Arial;
+}
+
+
+p {
+font-size: 115%;
+text-align: justify;
+
+}
+
+h1 {
+text-align: center;
+font-weight: bold;
+background-color: #799bd1;
+color: white;  }
+
+h2 {
+color: black;
+font-size: 130%;
+
+}
+
+h3 {
+  text-decoration: underline;
+  font-weight: bold;
+}
+
+.grafico1 {
+text-align: center;
+}
+<!-- <b></b> #para poner texto en negrita  #0096d2 -->
